@@ -1,8 +1,8 @@
-const socket = io.connect('https://encdenc.herokuapp.com/');
+const socket = io.connect('http://localhost:4563');
 
 new Spuck(
     { type: 'h1', parent: '#app', class: 'mb-3' },
-    { text: 'EncDenc' }
+    { text: 'EncDenc <kbd>v1.0.3</kbd>' }
 ).make();
 
 // Config Array Area
@@ -58,8 +58,18 @@ EncryptionArea.$effect(() => {
     if (!text) return;
     let TextEl = new Spuck({ type: 'p', parent: '#enc-area' }, { text: text.enc, css: { color: 'white' } });
     TextEl.attr = { title: text.dec };
+    TextEl.events = {
+        click: (e) => {
+            navigator.clipboard.writeText(text.enc);
+            e.target.id = 'copied';
+            setTimeout(() => {
+                e.target.id = '';
+            }, 300);
+        }
+    }
     TextEl.render()
     TextEl = TextEl.el
+    EncryptionArea.el.innerHTML = '';
     EncryptionArea.el.appendChild(TextEl);
     EncryptionArea.el.scrollTop = EncryptionArea.el.scrollHeight;
 }, ['$-encryptions']);
@@ -95,7 +105,7 @@ DecryptedText.prop = { value: '$-decryption' };
 DecryptedText.$effect(() => {
     let text = DecryptedText.getState('decryption');
     if (!text) return;
-    let TextEl = new Spuck({ type: 'p', parent: '#enc-area' }, { text: text, css: { color: 'white' } }).render();
+    let TextEl = new Spuck({ type: 'p', parent: '#dec-area' }, { text: text, css: { color: 'white' } }).render();
     TextEl = TextEl.el
     DecryptedText.el.innerHTML = '';
     DecryptedText.el.appendChild(TextEl);
@@ -122,4 +132,6 @@ socket.on('config-updated', () => {
     setEncText('');
     setDecryption('');
     setEncryptions([]);
+    EncryptionArea.el.innerHTML = '';
+    DecryptedText.el.innerHTML = '';
 })
