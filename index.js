@@ -1,4 +1,5 @@
-const socket = io.connect('https://encdenc.herokuapp.com');
+const socket = io.connect('http://localhost:4563');
+const config = CONFIG;
 
 new Spuck(
     { type: 'h1', parent: '#app', class: 'mb-3' },
@@ -12,15 +13,9 @@ new Spuck(
     { text: 'Config Array' }
 ).make();
 
-const ConfigArray = new Spuck({ type: 'input', parent: '#config', class: 'w-100', id: 'config-input' }).render();
-const setConfig = ConfigArray.$state('config', '1, 2, 3, 4, 5, 6, 7, 8, 9, 10');
-ConfigArray.prop = { value: '$-config' };
-ConfigArray.events = { input: e => setConfig(e.target.value) };
+const ConfigArray = new Spuck({ type: 'p', parent: '#config', class: 'w-100', id: 'config-input' }).render();
+ConfigArray.prop = { text: CONFIG };
 ConfigArray.make('re')
-
-const ConfigArraySetterButton = Button({ parent: '#config', className: 'btn btn-primary', text: 'Set Config' });
-ConfigArraySetterButton.events = { click: () => socket.emit('update-config', ConfigArray.getState('config')) }
-ConfigArraySetterButton.make('re');
 
 
 // Text Area
@@ -30,14 +25,19 @@ new Spuck(
     { text: 'Text' }
 ).make();
 
-const NormalText = new Spuck({ type: 'input', parent: '#enc-text', class: 'w-100 mb-3', id: 'normal-text' }).render();
+const NormalText = new Spuck({ type: 'textarea', parent: '#enc-text', class: 'w-100 mb-3', id: 'normal-text' }).render();
 const setText = NormalText.$state('text', '');
 NormalText.prop = { value: '$-text' };
 NormalText.events = {
     input: e => setText(e.target.value),
     keyup: e => {
-        if (e.keyCode === 13)
+        if (e.keyCode === 13 && !e.shiftKey) {
+            e.preventDefault();
             onType(e.target.value);
+        }
+    },
+    keydown: e => {
+        if (e.keyCode === 13 && !e.shiftKey) e.preventDefault();
     }
 };
 NormalText.attr = { placeholder: 'Enter text', autocomplete: 'off', autocorrect: 'off', autofocus: true };
@@ -68,8 +68,7 @@ EncryptionArea.$effect(() => {
         }
     }
     TextEl.render()
-    TextEl = TextEl.el
-    EncryptionArea.el.innerHTML = '';
+    TextEl = TextEl.el;
     EncryptionArea.el.appendChild(TextEl);
     EncryptionArea.el.scrollTop = EncryptionArea.el.scrollHeight;
 }, ['$-encryptions']);
@@ -119,19 +118,5 @@ function onType(text) {
     socket.emit('dec-text', text);
 }
 
-function Button({ parent, className, text }) {
-    const _Button = new Spuck({ type: 'button', parent: parent, class: className + ' mt-2' });
-    _Button.prop = { text };
-    return _Button.render();
-}
-
 socket.on('encrypted-text', (enc, dec) => setEncryptions(prev => [...prev, { enc, dec }]));
 socket.on('decrypted-text', dec => setDecryption(dec));
-socket.on('config-updated', () => {
-    setText('');
-    setEncText('');
-    setDecryption('');
-    setEncryptions([]);
-    EncryptionArea.el.innerHTML = '';
-    DecryptedText.el.innerHTML = '';
-})
