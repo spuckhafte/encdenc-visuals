@@ -7,7 +7,6 @@ const io = require('socket.io')(http, {
 
 const machine = new EncryptionMachine();
 machine.config = require('./_config.js')
-console.log(machine.config);
 
 const port = process.env.PORT || 4563;
 
