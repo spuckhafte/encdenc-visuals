@@ -6,7 +6,8 @@ const io = require('socket.io')(http, {
 
 
 const machine = new EncryptionMachine();
-machine.config = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+machine.config = require('./_config.js')
+console.log(machine.config);
 
 const port = process.env.PORT || 4563;
 
@@ -20,11 +21,6 @@ io.on('connection', socket => {
     socket.on('enc-text', text => {
         let dec = machine.decrypt(text);
         socket.emit('decrypted-text', dec);
-    })
-
-    socket.on('update-config', config => {
-        machine.config = config.split(',').map(Number);
-        socket.emit('config-updated');
     })
 })
 
