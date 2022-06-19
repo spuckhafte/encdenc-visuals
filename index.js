@@ -1,4 +1,4 @@
-const socket = io.connect('http://encdenc.herokuapp.com');
+const socket = io.connect('https://encdenc.herokuapp.com');
 const config = CONFIG;
 
 new Spuck(
